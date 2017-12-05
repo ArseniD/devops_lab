@@ -1,4 +1,6 @@
 ###### Requirements without Version Specifiers ######
 psutil
 PyYAML
-flake8
+
+###### Requirements with Version Specifiers ######
+python_version == '2.7'
