@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+'''pr-stats
+
+Usage:
+   pr-stats [options] <user> [<repo>]
+   pr-stats --version
+   pr-stats (-h | --help)
+
+Options:
+   -h --help                     Show help.
+      --version                  Print the program's installed version.
+      --github-url=<url>         Github URL.
+      --basic                    Basic statistics about merged/closed rate.
+      --days-open                Number of days opened.
+      --comments                 Number of comments created.
+      --day-created              Day of the week opened.
+      --day-closed               Day of the week closed.
+      --hour-created             Hour of the day opened.
+      --hour-closed              Hour of the day closed.
+      --week-created             Week opened.
+      --week-closed              Week closed.
+      --user-creating            User who opened.
+      --user-closing             User who closed.
+      --labels                   Attached labels.
+
+
+      --since=<date>             Only consider pull requests opened on or after
+                                 this date.
+      --until=<date>             Only consider pull requests opened before this
+                                 date.
+'''
+
+import sys
+import signal
+
+from urlparse import urlsplit
+from collections import defaultdict
+
+from docopt import docopt
+from envoy import run
+from github3 import GitHub
+
+from github_extra.pull_request import hub_connector
+from github_extra import VERSION
+
+
+def hub_auth(login, password, scopes, url=None):
+   """Obtain an authorization token for the GitHub API.
+
+   :param str login: (required)
+   :param str password: (required)
+   :param list scopes: (required), areas you want this token to apply to
+   :returns: :class:`Authorization <Authorization>`
+
+   """
+   git_hub = GitHub(url)
+   return git_hub.authorize(login, password, scopes)
+
+# Stack traces are ugly; why would we want to print one on ctrl-c?
+def nice_sigint(signal, frame):
+   print("")
+   sys.exit(0)
+
+signal.signal(signal.SIGINT, nice_sigint)
+arguments = docopt(__doc__, version='pr-stats {0}'.format(VERSION))
+git_url = arguments['--github-url']
+git_host = 'github.com'
+
+if git_url:
+   git_host = urlsplit(git_url, 'http').hostname
+
+# Use a stored OAuth token so we don't have to ask for the user's password
+token = run('git config --global github-pr-stats.%s.token' % git_host).std_out.strip()
+if not token:
+   from getpass import getpass
+   user = password = ''
+
+   while not user:
+      user = input('Username: ')
+   while not password:
+      password = getpass('Password: ')
+
+   auth = hub_auth(user, password, scopes=['repo'], url=git_url)
+   token = auth.token
+   run("git config --global github-pr-stats.%s.token '%s'" % (git_host, str(token)))
+
+config = defaultdict(bool)
+if arguments['--basic']:
+   config['basicStats'] = True
+if arguments['--days-open']:
+   config['daysOpen'] = True
+if arguments['--comments']:
+   config['comments'] = True
+if arguments['--day-created']:
+   config['dayOfWeekCreated'] = True
+if arguments['--day-closed']:
+   config['dayOfWeekClosed'] = True
+if arguments['--hour-created']:
+   config['hourOfDayCreated'] = True
+if arguments['--hour-closed']:
+   config['hourOfDayClosed'] = True
+if arguments['--week-created']:
+   config['weekCreated'] = True
+if arguments['--week-closed']:
+   config['weekClosed'] = True
+if arguments['--user-creating']:
+   config['userCreating'] = True
+if arguments['--user-closing']:
+   config['userClosing'] = True
+if arguments['--labels']:
+   config['labels'] = True
+if not config:
+   config = defaultdict(lambda: True)
+
+
+hub_connector(token, config, arguments['<user>'], arguments['<repo>'],
+                since=arguments['--since'], until=arguments['--until'],
+                url=git_url)
+
+
+
+
