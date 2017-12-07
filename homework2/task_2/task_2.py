@@ -34,8 +34,7 @@ def quadratic_roots(A, B, C, min_root, max_root):
             root_2 = root_1
         # order roots
         if root_1 > root_2:
-            # convert roots from float to integer
-            tmp = int(round(root_1))
+            tmp = root_1
             root_1 = root_2
             root_2 = tmp
         if min_root <= root_1 <= max_root:
