@@ -1,0 +1,6 @@
+###### Requirements without Version Specifiers ######
+psutil
+PyYAML
+
+###### Requirements with Version Specifiers ######
+python_version == '2.7'
