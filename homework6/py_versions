@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+'''
+A simple python script to find out information about python
+and pip version in current system
+
+
+Usage:
+   py_versions [options]
+   pr_versions (-h | --help)
+
+Options:
+   -h --help                     Show help.
+      --format                   Specify format for output (json|yaml|all)
+'''
+
+import argparse
+import subprocess
+
+from py_extra.py_versions import PythonVersion
+
+
+parser = argparse.ArgumentParser(
+    description='Get info about python version in current system',
+    prog='py_versions')
+parser.add_argument('-f', '--format',
+                    type=str,
+                    required='True',
+                    help='Specify output format (json|yaml|all)')
+args = parser.parse_args()
+
+# Errors collector
+output_err = None
+
+try:
+    if args.format == 'json':
+        with open('OUTPUT/OUTPUT.json', 'w') as file_j:
+            data_json = PythonVersion().__format__('json')
+            file_j.write(data_json)
+            file_j.close()
+    elif args.format == 'yaml':
+        with open('OUTPUT/OUTPUT.yaml', 'w') as file_y:
+            data_yaml = PythonVersion().__format__('yaml')
+            file_y.write(data_yaml)
+            file_y.close()
+    elif args.format == 'all':
+        with open('OUTPUT/ALL.txt', 'w') as file_a:
+            data_all = PythonVersion().__format__()
+            file_a.write(data_all)
+            file_a.close()
+    else:
+        print('Please specify output format.'
+              '\nSee --help for more information')
+except subprocess.CalledProcessError as error:
+    output_err = error.output
