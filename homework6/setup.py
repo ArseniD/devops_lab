@@ -11,7 +11,7 @@ setup(
    scripts = ['py_versions'],
    install_requires = [
       'PyYAML >= 3.0.0',
-      'argparse >= 1.3.0',
       'unittest2 >= 1.1.0',
+      'click >= 6.7',
    ],
 )

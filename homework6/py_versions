@@ -15,7 +15,7 @@ Options:
       --format                   Specify format for output (json|yaml|all)
 '''
 
-import argparse
+import click
 import subprocess
 
 from py_extra.py_versions import PythonVersion
@@ -67,19 +67,29 @@ def switch_case(choice):
         'all':  lambda :write_all(),
     }[choice]()
 
-parser = argparse.ArgumentParser(
-    description='Get info about python version in current system',
-    prog='py_versions')
-parser.add_argument('-f', '--format',
-                    type=str,
-                    required='True',
-                    help='Specify output format (json|yaml|all)')
-args = parser.parse_args()
 
-# Errors collector
-output_err = None
+@click.command()
+@click.option('--format', required=True,
+              help='Specify output format (json|yaml|all)')
+def cli(format):
+    '''
+    Create beautiful command line
 
-try:
-    switch_case(args.format)
-except subprocess.CalledProcessError as error:
-    output_err = error.output
+    :param format: str, specify output format (json|yaml|all)
+    :return: execute switch_case with with appropriate parameter
+    '''
+    if format:
+        click.echo(switch_case(format))
+    else:
+        click.echo('Please read --help for more information')
+
+
+if __name__ == "__main__":
+
+    # Errors collector
+    output_err = None
+
+    try:
+        cli()
+    except subprocess.CalledProcessError as error:
+        output_err = error.output
