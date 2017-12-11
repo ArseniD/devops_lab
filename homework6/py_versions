@@ -1,0 +1,85 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+'''
+A simple python script to find out information about python
+and pip version in current system
+
+
+Usage:
+   py_versions [options]
+   pr_versions (-h | --help)
+
+Options:
+   -h --help                     Show help.
+      --format                   Specify format for output (json|yaml|all)
+'''
+
+import argparse
+import subprocess
+
+from py_extra.py_versions import PythonVersion
+
+
+def write_json():
+    '''
+    Write data to the OUTPUT.json
+
+    :return: data in json format
+    '''
+    with open('OUTPUT/OUTPUT.json', 'w') as file_j:
+        data_json = PythonVersion().__format__('json')
+        file_j.write(data_json)
+        file_j.close()
+
+def write_yaml():
+    '''
+    Write data to the OUTPUT.yaml
+
+    :return: data in yaml format
+    '''
+    with open('OUTPUT/OUTPUT.yaml', 'w') as file_y:
+        data_yaml = PythonVersion().__format__('yaml')
+        file_y.write(data_yaml),
+        file_y.close()
+
+def write_all():
+    '''
+    Write json and yaml data to the ALL.txt
+
+    :return: data in txt format
+    '''
+    with open('OUTPUT/ALL.txt', 'w') as file_a:
+        data_all = PythonVersion().__format__()
+        file_a.write(data_all),
+        file_a.close()
+
+def switch_case(choice):
+    '''
+    Switch-case construction witch replace if-else statement
+
+    :param choice: str, output data format
+    :return: call function and write data in appropriate format to the file
+    '''
+    return {
+        'json': lambda :write_json(),
+        'yaml': lambda :write_yaml(),
+        'all':  lambda :write_all(),
+    }[choice]()
+
+parser = argparse.ArgumentParser(
+    description='Get info about python version in current system',
+    prog='py_versions')
+parser.add_argument('-f', '--format',
+                    type=str,
+                    required='True',
+                    help='Specify output format (json|yaml|all)')
+args = parser.parse_args()
+
+# Errors collector
+output_err = None
+
+try:
+    switch_case(args.format)
+except subprocess.CalledProcessError as error:
+    output_err = error.output
